@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      - SERVICE_NAME=backend
+      - DATABASE_URL=${DATABASE_URL:-}
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    volumes:
+      - backend-logs:/tmp
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    environment:
+      - BACKEND_URL=http://backend:5000/api/data
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+  logger:
+    build: ./logger
+    container_name: logger
+    depends_on:
+      - backend
+    volumes:
+      - backend-logs:/tmp
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=devpass
+      - POSTGRES_DB=devdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+  backend-logs:
