@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    image: nidhilade/backend:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      LOGGER_URL: http://logger:6000/log
+    depends_on:
+      - postgres
+      - logger
+    restart: unless-stopped
+
+  frontend:
+    image: nidhilade/frontend:latest
+    environment:
+      BACKEND_URL: http://backend:5000/api/data
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  logger:
+    image: nidhilade/logger:latest
+    volumes:
+      - logs:/logs
+    ports:
+      - "6000:6000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  logs:
